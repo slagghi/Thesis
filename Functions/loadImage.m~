@@ -1,7 +1,21 @@
-function [out] = loadImage(imgName)
-% This function takes a filename as input and
-% reads the correspo
+function [out] = loadImage(id)
+% multimodal function for reading dataset images
 path="~/Desktop/parsingDataset/RSICD_images/";
-out=imread(path+imgName);
+
+if(sum(class(id)
+
+switch class(id)
+% if the identifier is a number, it is the file id in the dataset
+    case 'double':
+        caps=readCaptions();
+        name=caps.images(id).filename;
+        out=imread(path+name);
+        break
+% if the identifier is a string, it is the filename
+    case 'string':
+        out=imread(path+identifier);
+        break
+
+end
 end
 

@@ -27,8 +27,9 @@ ctr=0;
 load('wordList.mat')
 %% count word occurrences
 dict={};
-for w=1:12
-    word=bitelist{w};
+for w=1:size(list,2)
+    word=list{w};
+    fprintf('\nNow analysing: %s\t Occurrences found: ',list{w});
     occurrences=0;
     for i=1:10921
         for j=1:5
@@ -36,10 +37,21 @@ for w=1:12
             for k=1:size(caption,1)
                 if strcmp(caption{k},word)
                     occurrences=occurrences+1;
+                    % prints progress
+                    digits=numel(num2str(occurrences-1));
+                    for d=1:digits
+                        fprintf('\b')
+                    end
+                    fprintf('%d',occurrences)
                 end
             end
-        end
-        dict{w,1}=bitelist{w};
+        end12
+        dict{w,1}=list{w};
         dict{w,2}=occurrences;
+        progress=w/size(list,2);
+        if mod(progress,0.5)==0
+            fprintf('\n----------------Progress: %d\%\n---------',progress)
+        end
     end
 end
+fprintf('\n')

@@ -3,7 +3,7 @@ function [out] = loadImage(id)
 % reads image from either image id or filename
 path="~/Desktop/parsingDataset/RSICD_images/";
 %% If the identifier is a number, it is the file id in the dataset
-if isa(id,'double')
+if isa(id,'double') || isa(id,'int64') || isa(id,'uint8')
     caps=readCaptions();
     name=caps.images(id).filename;
     out=imread(path+name);

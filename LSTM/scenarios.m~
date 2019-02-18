@@ -1,0 +1,23 @@
+% This code gives a numeric index to the different scenarios
+addpath('../Functions');
+DS=readCaptions();
+load('scenarioIndex.mat');
+
+dict=strings(50,1);
+sctr=0;
+new=0;
+for i=1:10921
+    s=sIndex(i);
+    % check if s is in the dictionary or if it is new
+    new=1;
+    for j=1:size(dict)
+        if strcmp(s,dict(j))
+            new=0;
+            break;
+        end
+    end
+    if new
+        sctr=sctr+1;
+        fprintf('New scenario: %s\n',s);
+        dict(
+end

@@ -1,4 +1,5 @@
 % This script generates a random character sequence
+% run after CreateDictionary.m
 initialCharacters=extractBefore(textData,2);
 firstCharacter=datasample(initialCharacters,1);
 generatedText=string(firstCharacter);

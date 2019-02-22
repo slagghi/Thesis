@@ -43,9 +43,6 @@ for i=1:10921
         captions{ctr}=cap;
     end
 end
-% remove unwanted punctuation
-%captions(:)=replace(captions(ctr,1),"  "," ");
-
 
 uniqueCharacters = unique([captions{:}]);
 numUniqueCharacters = numel(uniqueCharacters);

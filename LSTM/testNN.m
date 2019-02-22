@@ -42,12 +42,10 @@
 
 
 load('XYtrain.mat');
-%XTrain=XTrain(10306);
-%YTrain=YTrain(10306);
 
 %% Network architecture definition
 inputSize = size(XTrain{1},1);
-numHiddenUnits = 200;
+numHiddenUnits = 1000;
 numClasses = numel(categories([YTrain{:}]));
 
 layers = [

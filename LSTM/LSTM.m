@@ -1,5 +1,4 @@
 % This script defines the LSTM architecture
-% prepare the 
 
 % XTrain and Ytraind are obtained in CreateDictionary.m
 % They can be loaded from XYtrain.mat

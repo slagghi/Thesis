@@ -19,6 +19,11 @@ from tensorflow.python.keras.layers import InputLayer, Input
 from tensorflow.python.keras.layers import Reshape, MaxPooling2D
 from tensorflow.python.keras.layers import Conv2D, Dense, Flatten
 from tensorflow.python.keras.models import load_model
+from tensorflow.python.keras.callbacks import TensorBoard
+from tensorflow.python.keras.utils.vis_utils import plot_model
+
+# tensorboard visualization
+tbCallBack =TensorBoard(log_dir='./Graph', histogram_freq=0, write_graph=True, write_images=True)
 
 # Loading the dataset
 from mnist import MNIST
@@ -110,7 +115,8 @@ def train_network(n_epochs=1):
     model.fit(x=data.x_train,
               y=data.y_train,
               epochs=n_epochs,
-              batch_size=128)
+              batch_size=128,
+              callbacks=[tbCallBack])
 def evaluate_network():
     result=model.evaluate(x=data.x_test,
                           y=data.y_test)
@@ -135,9 +141,9 @@ def display_errors():
     cls_pred=np.argmax(y_pred,axis=1)
     plot_example_errors(cls_pred)
 
-path_model='model.keras'
-model.save(path_model)
-model2=load_model(path_model)
+#path_model='model.keras'
+#model.save(path_model)
+#model2=load_model(path_model)
 
 
     

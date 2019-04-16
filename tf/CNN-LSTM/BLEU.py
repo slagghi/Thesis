@@ -13,7 +13,7 @@ from helpers import load_json
 captions_test=load_json('captions_test')
 
 #generate_caption(path+filenames_test[0])
-with open('generated_captions.txt') as inFile:
+with open('generated_captions_VGG19.txt') as inFile:
     generated_test_captions=inFile.readlines()
 for i in range(len(generated_test_captions)):
     generated_test_captions[i]=generated_test_captions[i][1:]
@@ -26,6 +26,7 @@ references=list()
 for i in range(num_samples):
     C=generated_test_captions[i]
     R=captions_test[i]
+    
     refList=list()
     for j in range(5):
         refList.append(nltk.word_tokenize(R[j]))
@@ -62,6 +63,17 @@ chencherry=SmoothingFunction()
 #    s=sentence_bleu(references_tokenized,candidate_tokenized,weights=[1,0,0,0])
 #    score.append(s)
 #    
+
+
+# function to add the control tokens to the sentences
+def addCtrlSequence(string):
+    outstr='ssss '+string+' eeee'
+    return outstr
+
+def appendPeriod(string):
+    outstr=string+'.'
+    return outstr
+
 # try the corpus bleu
 
 B1=list()
@@ -74,8 +86,13 @@ for i in range(1093):
     references=captions_test[i]
     references_tokenized=list()
     for j in range(len(references)):
+#        COMMENT/UNCOMMENT CORRESPONDING LINE TO CONSIDER SENTENCES w/ ssss eeee
+#        references_tokenized.append(nltk.word_tokenize(addCtrlSequence(references[j])))
+        references_tokenized.append(nltk.word_tokenize(appendPeriod(references[j])))
         references_tokenized.append(nltk.word_tokenize(references[j]))
     candidate=generated_test_captions[i]
+#    candidate=addCtrlSequence(generated_test_captions[i])
+    candidate=appendPeriod(generated_test_captions[i])
     candidate_tokenized=nltk.word_tokenize(candidate)
 #    s1=sentence_bleu(references_tokenized,candidate_tokenized,weights=[1,0,0,0])
 #    s2=sentence_bleu(references_tokenized,candidate_tokenized,weights=[0.5,0.5,0,0])

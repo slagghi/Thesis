@@ -268,6 +268,7 @@ def beam_search(transfer_value):
 # This function returns the n-th highest value in a vector
 def nth_best(vector,n):
     v=vector
+    v=copy.copy(vector)
 #    discard (n-1) biggest elements
     for i in range(n-1):
         best=np.argmax(v)

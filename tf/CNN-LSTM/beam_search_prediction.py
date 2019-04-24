@@ -153,6 +153,31 @@ image = load_image(image_path, size=img_size)
 image_batch = np.expand_dims(image, axis=0)
 transfer_values = image_model_transfer.predict(image_batch)
 
+def get_test_captions(debug=0):
+    test_captions=list()
+    ctr=0
+    for filename in filenames_test:
+        print('Analysing ',filename)
+        image_path=path+filename
+        image=load_image(image_path,size=img_size)
+        image_batch=np.expand_dims(image,axis=0)
+        transfer_values=image_model_transfer.predict(image_batch)
+        captions_list=beam_search(transfer_values)
+        image_captions=list()
+        for caption in captions_list:
+            s=sequence_to_sentence(caption['sequence'])
+            image_captions.append(s)
+        test_captions.append(copy.copy(image_captions))
+        
+        
+        ctr+=1
+        progress=100*ctr/len(filenames_test)
+        print('processed ',ctr,'images\t%.2f%%'% progress)
+        if debug:
+            if ctr==3:
+                return test_captions
+    return test_captions
+    
 
 
 
@@ -213,7 +238,7 @@ def predict_next_word(transfer_values,prev_sequence,count_tokens,guessNr):
 
 # this function takes a list of incomplete captions and makes
 # N guesses for the next word
-nr_guesses=3
+nr_guesses=30
 def get_guesses(transfer_values,caption,prev_confidence):
 #    if the caption is already completed, don't make further guesses
     if token_end in caption:
@@ -234,7 +259,7 @@ def get_tokencount(sequence):
             break
         ctr+=1
     return ctr
-def sequence_to_sentence(sequence):
+def sequence_to_sentence(sequence,verbose=0):
     length=sequence.shape[1]
     s=""
     for i in range(length):
@@ -244,8 +269,13 @@ def sequence_to_sentence(sequence):
         w=tokenizer.token_to_word(t)
         s+=" "
         s+=w
-    print(s)
+    if verbose:
+        print(s)
+    s=s.replace('ssss ','')
+    s=s.replace(' eeee','')
+    return s
 
+sent_len=5
 def beam_search(transfer_value):
     starter_sequence=np.zeros(shape=(1,30),dtype=np.int)
     starter_sequence[0,0]=token_start
@@ -255,19 +285,43 @@ def beam_search(transfer_value):
             'confidence':0
             }
     caption_list.append(starter_caption)
-    for i in range(4):
+    for i in range(sent_len):
         new_captions=list()
         for caption in caption_list:
+# if caption is complete, automatically save it
+            if isComplete(caption):
+                new_captions.append(copy.copy(caption))
+                continue
             guesses=get_guesses(transfer_values,caption['sequence'],caption['confidence'])
             for guess in guesses:
                 new_captions.append(copy.copy(guess))
+#        caption_list=list()
+#        caption_list=copy.copy(new_captions)
+#        print(i)
+#        only keep n of the best captions
+        confVector=list()
+        for caption in new_captions:
+            conf=getAvgConfidence(caption)
+            confVector.append(conf)
+#        get the n best confidences
+        guesses2keep=5
+        best_guesses=list()
+        for bestGuess_iter in range(1,min(guesses2keep+1,len(confVector)+1)):
+            [best_position,best_value]=nth_best(confVector,bestGuess_iter)
+#            debug print
+#            print(best_guesses)
+#            print(new_captions[best_position])
+#            if new_captions[best_position] not in best_guesses:
+            best_guesses.append(copy.copy(new_captions[best_position]))
         caption_list=list()
-        caption_list=copy.copy(new_captions)
-        print(i)
+        caption_list=copy.copy(best_guesses)
+#        if all the captions are complete, save the list and return it
+        if allComplete(caption_list):
+            return caption_list
+#        print('candidate captions: ',len(caption_list))
     return caption_list
 # This function returns the n-th highest value in a vector
 def nth_best(vector,n):
-    v=vector
     v=copy.copy(vector)
 #    discard (n-1) biggest elements
     for i in range(n-1):
@@ -282,3 +336,38 @@ def normalise(vector):
     m=np.min(vector)
     vector=(vector-m)/(M-m)
     return vector
+
+def getAvgConfidence(caption):
+    sequence=caption['sequence']
+    confidence=caption['confidence']
+#    get the length of the sequence
+    l=getSeqLen(sequence)
+    avgConfidence=confidence/l
+    return avgConfidence
+
+# this function checks whether the current caption is complete
+def isComplete(caption):
+    if 2 in caption['sequence']:
+        return True
+    else: 
+        return False
+# this function checks if all the captions in the list are complete
+def allComplete(capList):
+    allComplete=True
+    for c in capList:
+        if isComplete(c):
+            continue
+#        this never gets executed if all the captions are complete
+        allComplete=False
+    return allComplete
+def getSeqLen(sequence,verbose=0):
+    l=0
+    for i in range(30):
+        if sequence[0,i]==0:
+            break
+        l+=1
+        if sequence[0,i]==2:
+            break
+    if verbose:
+        print(l)
+    return l

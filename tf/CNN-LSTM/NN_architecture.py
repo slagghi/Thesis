@@ -12,7 +12,6 @@ import json
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Input, Dense, GRU, Embedding
-from tensorflow.python.keras.applications import VGG16
 from tensorflow.python.keras.optimizers import RMSprop
 from tensorflow.python.keras.callbacks import ModelCheckpoint, TensorBoard
 from tensorflow.python.keras.preprocessing.text import Tokenizer
@@ -24,6 +23,11 @@ from helpers import print_progress
 from captions_preprocess import TokenizerWrap
 from captions_preprocess import flatten
 from captions_preprocess import mark_captions
+
+# Only load the desired CNN model
+#from tensorflow.python.keras.applications import VGG16
+from tensorflow.python.keras.applications import VGG19
+#from tensorflow.python.keras.applications import ResNet50
 
 # This function return a list of random token sequences
 # with the given indices in the training set
@@ -178,8 +182,15 @@ def sparse_cross_entropy(y_true, y_pred):
 
 # This code is used to generate captions
 # the CNN model, as well as the image size, has to be specified
-image_model = VGG16(include_top=True, weights='imagenet')
+#image_model = VGG16(include_top=True, weights='imagenet')
+#transfer_layer=image_model.get_layer('fc2')
+
+#image_model = ResNet50(include_top=True, weights='imagenet')
+#transfer_layer=image_model.get_layer('avg_pool')
+
+image_model = VGG19(include_top=True, weights='imagenet')
 transfer_layer=image_model.get_layer('fc2')
+
 image_model_transfer = Model(inputs=image_model.input,
                              outputs=transfer_layer.output)
 img_size=K.int_shape(image_model.input)[1:3]
@@ -293,7 +304,9 @@ def generate_caption(image_path, max_tokens=30):
 
 tokens_train=load_json('tokens_train')
 filenames_train=load_json('filenames_train')
-transfer_values_train=np.load('dataset/transfer_values_train.npy')
+
+# SPECIFY THE CNN, resnet50 or vgg
+transfer_values_train=np.load('dataset/transfer_values_train_VGG19.npy')
 
 # This has to be tuned in order to not run out of memory
 batch_size = 64
@@ -313,7 +326,7 @@ embedding_size=128
 # input the transfer values to the decoder
 # NOTE that the transfer values size depends on the chosen CNN
 # for VGG16, it's 4096
-transfer_values_size=4096
+transfer_values_size=transfer_values_train.shape[1]
 transfer_values_input = Input(shape=(transfer_values_size,),name='transfer_values_input')
 # tanh is needed to limit the mapping output between -1 and 1
 decoder_transfer_map = Dense(state_size,
@@ -360,12 +373,15 @@ decoder_model.compile(optimizer=optimizer,
                       target_tensors=[decoder_target])
 
 # callback function to save checkpoints
-path_checkpoint = '22_checkpoint.keras'
+# different callback for different cnns!!
+#path_checkpoint = '22_checkpoint.keras'
+path_checkpoint = '22_checkpoint_VGG19.keras'
+
 callback_checkpoint = ModelCheckpoint(filepath=path_checkpoint,
                                       verbose=1,
                                       save_weights_only=True)
 # callback to write the tensorboard log
-callback_tensorboard = TensorBoard(log_dir='./22_logs/',
+callback_tensorboard = TensorBoard(log_dir='./22_logs_VGG19/',
                                    histogram_freq=0,
                                    write_graph=False)
 callbacks = [callback_checkpoint, callback_tensorboard]
@@ -388,7 +404,7 @@ def bulk_generation():
     path='../../../../Desktop/parsingDataset/RSICD_images/'
     num_test_images=len(filenames_test)
 #    generated_captions=list()
-    f=open('generated_captions.txt','w')
+    f=open('generated_captions_VGG19.txt','w')
     for i in range(num_test_images):
         if i==884:
 #            image 884 (square_40) is corrupted
@@ -399,5 +415,5 @@ def bulk_generation():
 #        generated_captions.append(C)
         f.writelines(C+'\n')
         progress=100*i/num_test_images
-        print(i, "Progress: %.2f" % progress)
+        print(i, "Progress: %.2f%%" % progress)
     f.close()

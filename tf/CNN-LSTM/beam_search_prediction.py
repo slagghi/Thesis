@@ -1,14 +1,23 @@
 from helpers import load_image
 import numpy as np
+import copy
 from helpers import load_json
 
-from tensorflow.python.keras.applications import VGG16
+# NOTE only load the necessary CNN
+#from tensorflow.python.keras.applications import VGG16
+#from tensorflow.python.keras.applications import VGG19
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras import backend as K
 
 from captions_preprocess import TokenizerWrap
 from captions_preprocess import flatten
 from captions_preprocess import mark_captions
+
+# define the softmax function
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
 
 # This code implements beam search for a less-greedy sentence generation
 # NOTE:
@@ -113,8 +122,12 @@ def generate_caption(image_path, max_tokens=30):
 img_size=(228,228)
 
 # Load the transfer model (CNN)
-image_model = VGG16(include_top=True, weights='imagenet')
+#image_model = VGG16(include_top=True, weights='imagenet')
+#transfer_layer=image_model.get_layer('fc2')
+
+image_model = VGG19(include_top=True, weights='imagenet')
 transfer_layer=image_model.get_layer('fc2')
+
 image_model_transfer = Model(inputs=image_model.input,
                              outputs=transfer_layer.output)
 img_size=K.int_shape(image_model.input)[1:3]
@@ -156,44 +169,101 @@ def predict_next_word(transfer_values,prev_sequence,count_tokens,guessNr):
      'decoder_input':prev_sequence
      }
     decoder_output=decoder_model.predict(x_data)
+#    compute the softmax in order to get confidence scores between 0 and 1
     token_onehot = decoder_output[0, count_tokens, :]
+    token_onehot = softmax(token_onehot)
 
     [outToken,confidence]=nth_best(token_onehot,guessNr)
     outWord=tokenizer.token_to_word(outToken)
     
     return outToken,confidence
 
+#def beam_search(transfer_value):
+##    Cycle on words, with a max of 30
+##   the first predicted sequence is just the start token
+#    prev_sequence=np.zeros(shape=(1,30),dtype=np.int)
+#    prev_sequence[0,0]=token_start
+#    count_tokens=0
+#    nr_guesses=3
+#    caption_list=list()
+#    starter_caption={
+#            'sequence':prev_sequence,
+#            'confidence':0
+#            }
+#    caption_list.append(starter_caption)
+#    for count_tokens in range(2):
+##        for each caption in the list compute nr_guesses new captions and put them in a list
+#        new_captions=list()
+#        for caption in caption_list:
+#            prev_sequence=caption['sequence']
+#            prev_confidence=caption['confidence']
+#            for guess_iter in range(1,nr_guesses):
+#                [token,confidence]=predict_next_word(transfer_values,prev_sequence,count_tokens,guess_iter)
+##                update the sequence
+#                new_sequence=copy.copy(prev_sequence)
+#                new_sequence[0,count_tokens+1]=token
+#                new_caption={
+#                        'sequence':copy.copy(new_sequence),
+#                        'confidence':prev_confidence+confidence
+#                        }
+#                new_captions.append(copy.copy(new_caption))
+#        caption_list=list()
+#        caption_list=new_captions[:]
+#    return caption_list
+
+# this function takes a list of incomplete captions and makes
+# N guesses for the next word
+nr_guesses=3
+def get_guesses(transfer_values,caption,prev_confidence):
+#    if the caption is already completed, don't make further guesses
+    if token_end in caption:
+        return caption
+    new_captions=list()
+    count_token=get_tokencount(caption)
+    for guess_iter in range(1,nr_guesses+1):
+        [token,confidence]=predict_next_word(transfer_values,caption,count_token,guess_iter)
+        new_sequence=copy.copy(caption)
+        new_sequence[0,count_token+1]=token
+        new_caption={'sequence':copy.copy(new_sequence),'confidence':prev_confidence+confidence}
+        new_captions.append(copy.copy(new_caption))
+    return new_captions
+def get_tokencount(sequence):
+    ctr=-1
+    for i in range(30):
+        if sequence[0,i]==0:
+            break
+        ctr+=1
+    return ctr
+def sequence_to_sentence(sequence):
+    length=sequence.shape[1]
+    s=""
+    for i in range(length):
+        t=sequence[0,i]
+        if t==0:
+            break
+        w=tokenizer.token_to_word(t)
+        s+=" "
+        s+=w
+    print(s)
+
 def beam_search(transfer_value):
-#    Cycle on words, with a max of 30
-#   the first predicted sequence is just the start token
-    prev_sequence=np.zeros(shape=(1,30),dtype=np.int)
-    prev_sequence[0,0]=token_start
-    count_tokens=1
-    nr_guesses=3
+    starter_sequence=np.zeros(shape=(1,30),dtype=np.int)
+    starter_sequence[0,0]=token_start
     caption_list=list()
     starter_caption={
-            'sequence':prev_sequence,
+            'sequence':starter_sequence,
             'confidence':0
             }
     caption_list.append(starter_caption)
-    for count_tokens in range(1,2):
-#        for each caption in the list compute nr_guesses new captions and put them in a list
+    for i in range(4):
         new_captions=list()
         for caption in caption_list:
-            prev_sequence=caption['sequence']
-            prev_confidence=caption['confidence']
-            for guess_iter in range(1,nr_guesses):
-                [token,confidence]=predict_next_word(transfer_values,prev_sequence,count_tokens,guess_iter)
-#                update the sequence
-                new_sequence=copy.copy(prev_sequence)
-                new_sequence[0,count_tokens]=token
-                new_caption={
-                        'sequence':copy.copy(new_sequence),
-                        'confidence':prev_confidence+confidence
-                        }
-                new_captions.append(copy.copy(new_caption))
+            guesses=get_guesses(transfer_values,caption['sequence'],caption['confidence'])
+            for guess in guesses:
+                new_captions.append(copy.copy(guess))
         caption_list=list()
-        caption_list=new_captions[:]
+        caption_list=copy.copy(new_captions)
+        print(i)
     return caption_list
 # This function returns the n-th highest value in a vector
 def nth_best(vector,n):

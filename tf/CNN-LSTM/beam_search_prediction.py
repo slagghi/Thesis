@@ -147,17 +147,23 @@ token_end=tokenizer.word_index[mark_end.strip()]
 # ASSUME I ALREADY HAVE THE TRANSFER VALUES FOR THE IMAGE
 filenames_test=load_json('filenames_test')
 path='../../../../Desktop/parsingDataset/RSICD_images/'
-filename=filenames_test[812]
-image_path=path+filename
-image = load_image(image_path, size=img_size)
-image_batch = np.expand_dims(image, axis=0)
-transfer_values = image_model_transfer.predict(image_batch)
+
+# path for desktop computer
+path='../../../RSICD_images/'
+
+#filename=filenames_test[812]
+#image_path=path+filename
+#image = load_image(image_path, size=img_size)
+#image_batch = np.expand_dims(image, axis=0)
+#transfer_values = image_model_transfer.predict(image_batch)
 
 def get_test_captions(debug=0):
     test_captions=list()
     ctr=0
     for filename in filenames_test:
         print('Analysing ',filename)
+        if filename=='square_40.jpg':
+            filename='square_4.jpg'
         image_path=path+filename
         image=load_image(image_path,size=img_size)
         image_batch=np.expand_dims(image,axis=0)
@@ -166,7 +172,9 @@ def get_test_captions(debug=0):
         image_captions=list()
         for caption in captions_list:
             s=sequence_to_sentence(caption['sequence'])
-            image_captions.append(s)
+            conf=getAvgConfidence(caption)
+            cap={'sentence':s,'score':conf}
+            image_captions.append(cap)
         test_captions.append(copy.copy(image_captions))
         
         
@@ -238,7 +246,7 @@ def predict_next_word(transfer_values,prev_sequence,count_tokens,guessNr):
 
 # this function takes a list of incomplete captions and makes
 # N guesses for the next word
-nr_guesses=30
+nr_guesses=3
 def get_guesses(transfer_values,caption,prev_confidence):
 #    if the caption is already completed, don't make further guesses
     if token_end in caption:
@@ -275,8 +283,8 @@ def sequence_to_sentence(sequence,verbose=0):
     s=s.replace(' eeee','')
     return s
 
-sent_len=5
-def beam_search(transfer_value):
+sent_len=29
+def beam_search(transfer_values):
     starter_sequence=np.zeros(shape=(1,30),dtype=np.int)
     starter_sequence[0,0]=token_start
     caption_list=list()

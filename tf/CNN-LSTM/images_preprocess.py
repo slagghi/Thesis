@@ -10,11 +10,15 @@ import json
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Input, Dense, GRU, Embedding
-from tensorflow.python.keras.applications import VGG16
 from tensorflow.python.keras.optimizers import RMSprop
 from tensorflow.python.keras.callbacks import ModelCheckpoint, TensorBoard
 from tensorflow.python.keras.preprocessing.text import Tokenizer
 from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+
+# Insert the CNN model here
+#from tensorflow.python.keras.applications import VGG16
+from tensorflow.python.keras.applications import ResNet50
+
 
 from helpers import load_json
 from helpers import load_image
@@ -165,9 +169,19 @@ filenames_val=load_json('filenames_val')
 captions_val=load_json('captions_val')
 
 #show_image(idx=1,train=True)
-image_model = VGG16(include_top=True, weights='imagenet')
-# we use the output of the final fc2 layer (fully connected dense layer)
+
+
+# INSERT THE CNN MODEL HERE
+#image_model = VGG16(include_top=True, weights='imagenet')
+#image_model = ResNet50(include_top=True, weights='imagenet')
+image_model = VGG19(include_top=True, weights='imagenet')
+# for VGG16 and VGG19,we use the output of the final fc2 layer (fully connected dense layer)
+# for resnet, we use the global the final avg_pool layer
+
 transfer_layer=image_model.get_layer('fc2')
+#transfer_layer=image_model.get_layer('avg_pool')
+
+
 image_model_transfer = Model(inputs=image_model.input,
                              outputs=transfer_layer.output)
 img_size=K.int_shape(image_model.input)[1:3]

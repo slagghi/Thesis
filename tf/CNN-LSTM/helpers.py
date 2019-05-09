@@ -67,7 +67,7 @@ def print_progress(count, max_count):
 
     # Status-message. Note the \r which means the line should
     # overwrite itself.
-    msg = "\r- Progress: {0:.1%}".format(pct_complete)
+    msg = "\r- Progress: {0:.3%}".format(pct_complete)
 
     # Print it.
     sys.stdout.write(msg)

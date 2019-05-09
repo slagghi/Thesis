@@ -13,10 +13,12 @@ from helpers import load_json
 captions_test=load_json('captions_test')
 
 #generate_caption(path+filenames_test[0])
-with open('generated_captions_VGG19.txt') as inFile:
+#with open('generated_captions_VGG19.txt') as inFile:
+with open('generated_captions.txt') as inFile:
     generated_test_captions=inFile.readlines()
 for i in range(len(generated_test_captions)):
-    generated_test_captions[i]=generated_test_captions[i][1:]
+#    THIS LINE REMOVES THE FIRST EMPTY SPACE
+#    generated_test_captions[i]=generated_test_captions[i][1:]
     generated_test_captions[i]=generated_test_captions[i].replace('\n','')
 
 # build the references and candidate library
@@ -33,37 +35,9 @@ for i in range(num_samples):
     candidates.append(C)
     references.append(refList)
 
-#def BLEU(references,candidate,order):
-#    if order==1:
-#        weights=[1,0,0,0]
-#    elif order==2:
-#        weights=[0.5,0.5,0,0]
-#    elif order==3:
-#        weights=[0.33,0.33,0.33,0]
-#    elif order==4:
-#        weights=[0.25,0.25,0.25,0.25]
-#    else:
-#        print('Invalid BLEU order')
-#        return
-#    score=sentence_bleu(references,candidate,weights)
-#    return score
-
-#score=sentence_bleu(references,candidate)
 score=list()
 
 chencherry=SmoothingFunction()
-
-#for i in range(1093):
-#    references=captions_test[i]
-#    references_tokenized=list()
-#    for i in range(len(references)):
-#        references_tokenized.append(nltk.word_tokenize(references[i]))
-#    candidate=generated_test_captions[i]
-#    candidate_tokenized=nltk.word_tokenize(candidate)
-#    s=sentence_bleu(references_tokenized,candidate_tokenized,weights=[1,0,0,0])
-#    score.append(s)
-#    
-
 
 # function to add the control tokens to the sentences
 def addCtrlSequence(string):
@@ -89,7 +63,7 @@ for i in range(1093):
 #        COMMENT/UNCOMMENT CORRESPONDING LINE TO CONSIDER SENTENCES w/ ssss eeee
 #        references_tokenized.append(nltk.word_tokenize(addCtrlSequence(references[j])))
         references_tokenized.append(nltk.word_tokenize(appendPeriod(references[j])))
-        references_tokenized.append(nltk.word_tokenize(references[j]))
+#        references_tokenized.append(nltk.word_tokenize(references[j]))
     candidate=generated_test_captions[i]
 #    candidate=addCtrlSequence(generated_test_captions[i])
     candidate=appendPeriod(generated_test_captions[i])

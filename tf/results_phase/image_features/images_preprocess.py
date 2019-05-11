@@ -131,17 +131,17 @@ def process_images_train():
     print("Processing {0} images in training-set ...".format(len(filenames_train)))
 
     # Path for the cache-file.
-    cache_path = os.path.join(tv_dir,
-                              "transfer_values_train.pkl")
+#    cache_path = os.path.join(tv_dir,
+#                              "transfer_values_train.pkl")
 
     # If the cache-file already exists then reload it,
     # otherwise process all images and save their transfer-values
     # to the cache-file so it can be reloaded quickly.
-    transfer_values = cache(cache_path=cache_path,
-                            fn=process_images,
-                            data_dir=image_dir,
-                            filenames=filenames_train)
-
+#    transfer_values = cache(cache_path=cache_path,
+#                            fn=process_images,
+#                            data_dir=image_dir,
+#                            filenames=filenames_train)
+    transfer_values=pricess_images(image_dir,filenames_train)
     return transfer_values
 
 # Process all images in evaluation set
@@ -149,31 +149,32 @@ def process_images_val():
     print("Processing {0} images in validation-set ...".format(len(filenames_val)))
 
     # Path for the cache-file.
-    cache_path = os.path.join(tv_dir,
-                              "transfer_values_val.pkl")
+#    cache_path = os.path.join(tv_dir,
+#                              "transfer_values_val.pkl")
     # If the cache-file already exists then reload it,
     # otherwise process all images and save their transfer-values
     # to the cache-file so it can be reloaded quickly.
-    transfer_values = cache(cache_path=cache_path,
-                            fn=process_images,
-                            data_dir=image_dir,
-                            filenames=filenames_val)
-
+#    transfer_values = cache(cache_path=cache_path,
+#                            fn=process_images,
+#                            data_dir=image_dir,
+#                            filenames=filenames_val)
+    transfer_values=pricess_images(image_dir,filenames_val)
     return transfer_values
 
 def process_images_test():
     print("Processing {0} images in test-set ...".format(len(filenames_val)))
 
     # Path for the cache-file.
-    cache_path = os.path.join(tv_dir,
-                              "transfer_values_test.pkl")
+#    cache_path = os.path.join(tv_dir,
+#                              "transfer_values_test.pkl")
     # If the cache-file already exists then reload it,
     # otherwise process all images and save their transfer-values
     # to the cache-file so it can be reloaded quickly.
-    transfer_values = cache(cache_path=cache_path,
-                            fn=process_images,
-                            data_dir=image_dir,
-                            filenames=filenames_val)
+#    transfer_values = cache(cache_path=cache_path,
+#                            fn=process_images,
+#                            data_dir=image_dir,
+#                            filenames=filenames_test)
+    transfer_values=pricess_images(image_dir,filenames_test)
 
     return transfer_values
 
@@ -184,6 +185,8 @@ num_images_train=len(filenames_train)
 
 filenames_val=load_json('filenames_val')
 captions_val=load_json('captions_val')
+
+filenames_test=load_json('filenames_test')
 
 #show_image(idx=1,train=True)
 

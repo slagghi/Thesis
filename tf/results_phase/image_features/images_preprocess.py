@@ -16,7 +16,7 @@ from tensorflow.python.keras.preprocessing.text import Tokenizer
 from tensorflow.python.keras.preprocessing.sequence import pad_sequences
 
 # Insert the CNN model here
-from tensorflow.python.keras.applications import VGG16
+#from tensorflow.python.keras.applications import VGG16
 #from tensorflow.python.keras.applications import ResNet50
 #from tensorflow.python.keras.applications import VGG19
 
@@ -99,6 +99,14 @@ def process_images(data_dir, filenames, batch_size=32):
         # Load all the images in the batch.
         for i, filename in enumerate(filenames[start_index:end_index]):
             # Path for the image-file.
+            
+#            reject illegal filenames
+            if filename==filenames_test[884]:
+                filename=filenames_test[883]
+            if filename==filenames_train[5734]:
+                filename=filenames_train[5733]
+
+            
             path = os.path.join(data_dir, filename)
 
             # Load and resize the image.
@@ -141,7 +149,7 @@ def process_images_train():
 #                            fn=process_images,
 #                            data_dir=image_dir,
 #                            filenames=filenames_train)
-    transfer_values=pricess_images(image_dir,filenames_train)
+    transfer_values=process_images(image_dir,filenames_train)
     return transfer_values
 
 # Process all images in evaluation set
@@ -158,7 +166,7 @@ def process_images_val():
 #                            fn=process_images,
 #                            data_dir=image_dir,
 #                            filenames=filenames_val)
-    transfer_values=pricess_images(image_dir,filenames_val)
+    transfer_values=process_images(image_dir,filenames_val)
     return transfer_values
 
 def process_images_test():
@@ -174,7 +182,7 @@ def process_images_test():
 #                            fn=process_images,
 #                            data_dir=image_dir,
 #                            filenames=filenames_test)
-    transfer_values=pricess_images(image_dir,filenames_test)
+    transfer_values=process_images(image_dir,filenames_test)
 
     return transfer_values
 
@@ -187,6 +195,13 @@ filenames_val=load_json('filenames_val')
 captions_val=load_json('captions_val')
 
 filenames_test=load_json('filenames_test')
+
+# fix filenames for corrupted images
+# corrupted images for test: 884
+#filenames_test[884]=filenames_test[883]
+# corrupted images for train: 5735
+#filenames_test[5735]=filenames_test[5734]
+# corrupted images for val: NONE
 
 #show_image(idx=1,train=True)
 

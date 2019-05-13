@@ -18,7 +18,7 @@ from tensorflow.python.keras.preprocessing.sequence import pad_sequences
 # Insert the CNN model here
 #from tensorflow.python.keras.applications import VGG16
 #from tensorflow.python.keras.applications import ResNet50
-#from tensorflow.python.keras.applications import VGG19
+from tensorflow.python.keras.applications import VGG19
 
 
 from helpers import load_json
@@ -26,7 +26,8 @@ from helpers import load_image
 from helpers import print_progress
 
 # function to show image along with captions
-image_dir='../../../../../Desktop/parsingDataset/RSICD_images/'
+#image_dir='../../../../../Desktop/parsingDataset/RSICD_images/'
+image_dir='../../../../RSICD_images/'
 def show_image(idx, train):
     """
     Load and plot an image from the training- or validation-set
@@ -207,9 +208,9 @@ filenames_test=load_json('filenames_test')
 
 
 # INSERT THE CNN MODEL HERE
-image_model = VGG16(include_top=True, weights='imagenet')
+#image_model = VGG16(include_top=True, weights='imagenet')
 #image_model = ResNet50(include_top=True, weights='imagenet')
-#image_model = VGG19(include_top=True, weights='imagenet')
+image_model = VGG19(include_top=True, weights='imagenet')
 # for VGG16 and VGG19,we use the output of the final fc2 layer (fully connected dense layer)
 # for resnet, we use the global the final avg_pool layer
 

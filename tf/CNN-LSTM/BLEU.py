@@ -6,20 +6,29 @@ from nltk import word_tokenize
 from nltk.translate.bleu_score import sentence_bleu
 from nltk.translate.bleu_score import corpus_bleu
 from nltk.translate.bleu_score import SmoothingFunction
+import json
 
 from helpers import load_json
 #from NN_architecture import generate_caption
 # run the NN architecture before
 captions_test=load_json('captions_test')
 
-#generate_caption(path+filenames_test[0])
-#with open('generated_captions_VGG19.txt') as inFile:
-with open('generated_captions.txt') as inFile:
-    generated_test_captions=inFile.readlines()
-for i in range(len(generated_test_captions)):
-#    THIS LINE REMOVES THE FIRST EMPTY SPACE
-#    generated_test_captions[i]=generated_test_captions[i][1:]
-    generated_test_captions[i]=generated_test_captions[i].replace('\n','')
+##generate_caption(path+filenames_test[0])
+##with open('generated_captions_VGG19.txt') as inFile:
+#with open('captions_vgg16/4_generated_captions_VGG16.txt') as inFile:
+#    generated_test_captions=inFile.readlines()
+#for i in range(len(generated_test_captions)):
+##    THIS LINE REMOVES THE FIRST EMPTY SPACE
+##    generated_test_captions[i]=generated_test_captions[i][1:]
+#    generated_test_captions[i]=generated_test_captions[i].replace('\n','')
+#
+
+# load from json
+with open('captions_vgg16/12_generated_captions_VGG16.json') as inFile:
+    generated_test_captions=json.load(inFile)
+c_to_insert=generated_test_captions[883]
+generated_test_captions.insert(884,c_to_insert)
+
 
 # build the references and candidate library
 num_samples=len(generated_test_captions)

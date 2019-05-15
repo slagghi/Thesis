@@ -30,7 +30,7 @@ for i in range(1,10):
         print('Error trying to load checkpoint.')
         print(error)
     print('\nLoaded model trained on ',i+1,' epochs')
-    outFile=str(i)+'_generated_captions_VGG16_5layers.json'
+    outFile=str(i)+'_generated_captions_ResNet50_5layers.json'
     caption_list=bulk_generation(outFile)
     with open(outFile,'w') as f:
         json.dump(caption_list,f)

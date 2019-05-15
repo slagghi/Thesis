@@ -25,22 +25,22 @@ from captions_preprocess import flatten
 from captions_preprocess import mark_captions
 
 # ONLY IMPORT DESIRED CNN MODEL
-#from tensorflow.python.keras.applications import VGG16
-#image_model = VGG16(include_top=True, weights='imagenet')
-#transfer_layer=image_model.get_layer('fc2')
+from tensorflow.python.keras.applications import VGG16
+image_model = VGG16(include_top=True, weights='imagenet')
+transfer_layer=image_model.get_layer('fc2')
 
 #from tensorflow.python.keras.applications import VGG19
 #image_model = VGG19(include_top=True, weights='imagenet')
 #transfer_layer=image_model.get_layer('fc2')
 
-from tensorflow.python.keras.applications import ResNet50
-image_model = ResNet50(include_top=True, weights='imagenet')
-transfer_layer=image_model.get_layer('avg_pool')
+#from tensorflow.python.keras.applications import ResNet50
+#image_model = ResNet50(include_top=True, weights='imagenet')
+#transfer_layer=image_model.get_layer('avg_pool')
 
 # LOAD THE CORRECT TRANSFER VALUES
 # SPECIFY THE CNN, resnet50 or vgg
-transfer_values_train=np.load('image_features/transfer_values/ResNet50/transfer_values_train.npy')
-transfer_values_val=np.load('image_features/transfer_values/ResNet50/transfer_values_val.npy')
+transfer_values_train=np.load('image_features/transfer_values/VGG16/transfer_values_train.npy')
+transfer_values_val=np.load('image_features/transfer_values/VGG16/transfer_values_val.npy')
 
 image_model_transfer = Model(inputs=image_model.input,
                              outputs=transfer_layer.output)

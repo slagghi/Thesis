@@ -2,7 +2,7 @@ from helpers import load_image
 import numpy as np
 import copy
 from helpers import load_json
-
+import numpy as np
 
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras import backend as K
@@ -12,12 +12,14 @@ from captions_preprocess import flatten
 from captions_preprocess import mark_captions
 
 # NOTE only load the necessary CNN
-from tensorflow.python.keras.applications import VGG16
+#from tensorflow.python.keras.applications import VGG16
 #from tensorflow.python.keras.applications import VGG19
+#from tensorflow.python.keras.applications import InceptionV3
 
-image_model = VGG16(include_top=True, weights='imagenet')
-transfer_layer=image_model.get_layer('fc2')
-decoder_model.load_weights('best_models/VGG16/checkpoint.keras')
+#image_model = InceptionV3(include_top=True, weights='imagenet')
+#transfer_layer=image_model.get_layer('avg_pool')
+decoder_model.load_weights('best_models/InceptionV3_5layers/checkpoint.keras')
+#transfer_values_test=np.load('../image_features/transfer_values/InceptionV3/transfer_values_test.npy')
 
 # define the softmax function
 def softmax(x):
@@ -125,7 +127,7 @@ def generate_caption(image_path, max_tokens=30):
 #    print()
     return output_text.replace(" eeee","")
 
-img_size=(228,228)
+#img_size=(228,228)
 
 
 
@@ -150,10 +152,10 @@ token_end=tokenizer.word_index[mark_end.strip()]
 
 # ASSUME I ALREADY HAVE THE TRANSFER VALUES FOR THE IMAGE
 filenames_test=load_json('filenames_test')
-#path='../../../../Desktop/parsingDataset/RSICD_images/'
+path='../../../../../Desktop/parsingDataset/RSICD_images/'
 
 # path for desktop computer
-path='../../../RSICD_images/'
+#path='../../../RSICD_images/'
 
 #filename=filenames_test[812]
 #image_path=path+filename
@@ -191,6 +193,29 @@ def get_test_captions(debug=0):
     return test_captions
     
 
+tv_shape=transfer_values_test[0].shape[0]
+def get_test_captions_tv(debug=0):
+    test_captions=list()
+    ctr=0
+    for i in range(1094):
+        transfer_values=transfer_values_test[i]
+        transfer_values=np.reshape(transfer_values,(1,tv_shape))
+        captions_list=beam_search(transfer_values)
+        image_captions=list()
+        for caption in captions_list:
+            s=sequence_to_sentence(caption['sequence'])
+            conf=getAvgConfidence(caption)
+            cap={'sentence':s,'score':conf}
+            image_captions.append(cap)
+        test_captions.append(copy.copy(image_captions))
+        
+        
+        ctr+=1
+        print_progress(i+1,1094)
+        if debug:
+            if ctr==3:
+                return test_captions
+    return test_captions
 
 
 # This code, given a transfer vector and the previous sequence, predicts the

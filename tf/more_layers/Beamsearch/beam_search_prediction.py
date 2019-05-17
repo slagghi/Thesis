@@ -18,7 +18,7 @@ from captions_preprocess import mark_captions
 
 #image_model = InceptionV3(include_top=True, weights='imagenet')
 #transfer_layer=image_model.get_layer('avg_pool')
-decoder_model.load_weights('best_models/InceptionV3_5layers/checkpoint.keras')
+decoder_model.load_weights('best_models/ResNet50/checkpoint.keras')
 #transfer_values_test=np.load('../image_features/transfer_values/InceptionV3/transfer_values_test.npy')
 
 # define the softmax function
@@ -197,7 +197,7 @@ tv_shape=transfer_values_test[0].shape[0]
 def get_test_captions_tv(debug=0):
     test_captions=list()
     ctr=0
-    for i in range(1094):
+    for i in range(1093):
         transfer_values=transfer_values_test[i]
         transfer_values=np.reshape(transfer_values,(1,tv_shape))
         captions_list=beam_search(transfer_values)

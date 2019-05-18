@@ -10,6 +10,7 @@ from helpers import load_json
 from helpers import print_progress
 from helpers import load_image
 import numpy as np
+import copy
 img_size=(228,228)
 
 
@@ -26,35 +27,31 @@ chencherry=SmoothingFunction()
 #transfer_layer=image_model.get_layer('fc2')
 #image_model_transfer = Model(inputs=image_model.input,
 #                             outputs=transfer_layer.output)
-def get_transfer_values(image_path):
-    '''
-    Compute the transfer values for an image
-    given the image transfer model
-    '''
-    
-    # Load and resize the image.
-    image = load_image(image_path, size=img_size)
-    
-    # Expand the 3-dim numpy array to 4-dim
-    # because the image-model expects a whole batch as input,
-    # so we give it a batch with just one image.
-    image_batch = np.expand_dims(image, axis=0)
 
-    # Process the image with the pre-trained image-model
-    # to get the transfer-values.
-    transfer_values = image_model_transfer.predict(image_batch)
-    return transfer_values
+transfer_values_train=np.load('../image_features/transfer_values/VGG16/transfer_values_train.npy')
+transfer_values_test=np.load('../image_features/transfer_values/VGG16/transfer_values_test.npy')
+captions_train=load_json('captions_train')
+filename='test_captions_VGG16_5layers.json'
 
+out_dir='best_beamsearched/VGG16/'
 
-
-filename='test_captions_beamsearch_VGG16.json'
 with open(filename,'r') as inFile:
     beamCaptions=json.load(inFile)
     beamCaptions=tuple(beamCaptions)
 
+def get_transfer_values(image_path):
+    tv_len=transfer_values_test[0].shape[0]
+    filename=image_path[len(image_dir):]
+    for i in range(len(filenames_test)):
+        if filenames_test[i] == filename:
+            break
+    transfer_values=transfer_values_test[i]
+    transfer_values=np.reshape(transfer_values,(1,tv_len))
+    return transfer_values
+
+
 captions_test=load_json('captions_test')
 filenames_test=load_json('filenames_test')
-transfer_values_train=np.load('dataset/transfer_values_train.npy')
 captions_train=load_json('captions_train')
 
 # build the references library
@@ -91,25 +88,25 @@ for i in range(num_samples):
     bestCaptions.append(bestCaption[1:])
     idxList.append(bestIdx)
 #    plot progress
-    print_progress(i,num_samples)
+    print_progress(i+1,num_samples)
     
-# aggregate the corpus of the best caption for each image
-#bestCorpus=list()
-#for i in range(num_samples):
-#    idx=bestCaptions[i]
-#    candidate=beamCaptions[i][idx]['sentence']
-#    bestCorpus.append(candidate)
-    
+with open(out_dir+'absolute_best.json','w') as outFile:
+    json.dump(bestCaptions,outFile)
+
 
 # SECON METHOD
 # the best caption is the one with the best consensus score
     
-
+# VGG16 consensus
     
-print('\nChoosing best caption based on consensus score')
+print('\nChoosing best caption based on VGG16 consensus')
 image_dir='../../../../Desktop/parsingDataset/RSICD_images/'
-idxList2=list()
-bestCaptions2=list()
+VGG16_idxList=list()
+VGG16_bestCaptions=list()
+
+values_train=np.load('../image_features/transfer_values/VGG16/transfer_values_train.npy')
+transfer_values_test=np.load('../image_features/transfer_values/VGG16/transfer_values_test.npy')
+
 
 for i in range(num_samples):
     consScores=list()
@@ -121,13 +118,76 @@ for i in range(num_samples):
     for j in range(5):
         candidate=beamCaptions[i][j]['sentence']
 
-        score=consensus_score(candidate,transfer_values)
+        score=consensus_score(candidate,transfer_values,transfer_values_train)
         consScores.append(score)
     bestIdx=np.argmax(consScores)
-    idxList2.append(bestIdx)    
+    VGG16_idxList.append(bestIdx)    
     bestCaption=beamCaptions[i][bestIdx]['sentence']
-    bestCaptions2.append(bestCaption[1:])
+    VGG16_bestCaptions.append(copy.copy(bestCaption[1:]))
 
-    print_progress(i,num_samples)
+    print_progress(i+1,num_samples)
+with open(out_dir+'VGG16_consensus.json','w') as outFile:
+    json.dump(VGG16_bestCaptions,outFile)
+
+# ResNet consensus
+print('\nChoosing best caption based on ResNet50 consensus')
+image_dir='../../../../Desktop/parsingDataset/RSICD_images/'
+ResNet50_idxList=list()
+ResNet50_bestCaptions=list()
+
+transfer_values_train=np.load('../image_features/transfer_values/ResNet50/transfer_values_train.npy')
+transfer_values_test=np.load('../image_features/transfer_values/ResNet50/transfer_values_test.npy')
+
+
+for i in range(num_samples):
+    consScores=list()
+    image_filename=filenames_test[i]
+    if i==884:
+        image_filename=filenames_test[883]
+    transfer_values=get_transfer_values(image_dir+image_filename)
     
+    for j in range(5):
+        candidate=beamCaptions[i][j]['sentence']
+
+        score=consensus_score(candidate,transfer_values,transfer_values_train)
+        consScores.append(score)
+    bestIdx=np.argmax(consScores)
+    ResNet50_idxList.append(bestIdx)    
+    bestCaption=beamCaptions[i][bestIdx]['sentence']
+    ResNet50_bestCaptions.append(copy.copy(bestCaption[1:]))
+
+    print_progress(i+1,num_samples)
+with open(out_dir+'ResNet50_consensus.json','w') as outFile:
+    json.dump(ResNet50_bestCaptions,outFile)
+
+# Inception consensus
+print('\nChoosing best caption based on Inception consensus')
+image_dir='../../../../Desktop/parsingDataset/RSICD_images/'
+InceptionV3_idxList=list()
+InceptionV3_bestCaptions=list()
+
+transfer_values_train=np.load('../image_features/transfer_values/InceptionV3/transfer_values_train.npy')
+transfer_values_test=np.load('../image_features/transfer_values/InceptionV3/transfer_values_test.npy')
+
+
+for i in range(num_samples):
+    consScores=list()
+    image_filename=filenames_test[i]
+    if i==884:
+        image_filename=filenames_test[883]
+    transfer_values=get_transfer_values(image_dir+image_filename)
+    
+    for j in range(5):
+        candidate=beamCaptions[i][j]['sentence']
+
+        score=consensus_score(candidate,transfer_values,transfer_values_train)
+        consScores.append(score)
+    bestIdx=np.argmax(consScores)
+    InceptionV3_idxList.append(bestIdx)    
+    bestCaption=beamCaptions[i][bestIdx]['sentence']
+    InceptionV3_bestCaptions.append(copy.copy(bestCaption[1:]))
+
+    print_progress(i+1,num_samples)
+with open(out_dir+'InceptionV3_consensus.json','w') as outFile:
+    json.dump(InceptionV3_bestCaptions,outFile)
     

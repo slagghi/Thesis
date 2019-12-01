@@ -24,8 +24,10 @@ from helpers import load_json
 from helpers import load_image
 from helpers import print_progress
 
-# function to show image along with captions
+# INSERT IMAGE DIRECTORY
 image_dir='../../../../Desktop/parsingDataset/RSICD_images/'
+
+# function to show image along with captions
 def show_image(idx, train):
     """
     Load and plot an image from the training- or validation-set

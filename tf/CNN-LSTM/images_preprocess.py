@@ -198,3 +198,5 @@ def process_and_save():
     transfer_values_val=process_images_val()
     print("dtype:",transfer_values_val.dtype)
     print("shape:",transfer_values_val.shape)
+
+print("to process the images, run the process_and_save() function")
